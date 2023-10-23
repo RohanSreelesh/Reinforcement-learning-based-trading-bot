@@ -8,19 +8,20 @@ authors = [
 license = "MIT"
 readme = "README.md"
 packages = [
-  {include = "playground", from = "src"},
-  {include = "project", from = "src"}
+  {include = "data", from = "src"},
+  {include = "demo", from = "src"},
+  {include = "envs", from = "src"}
 ]
 
 [tool.poetry.scripts]
-playground = "src.playground.main:run"
+trading-demo = "src.demo.trading-demo:demo"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-numpy = "^1.24.1"
+python = "^3.11"
+numpy = "^1.25.2"
 gymnasium = "^0.29.1"
-box2d-py = "^2.3.8"
-pygame = "^2.5.1"
+matplotlib = "^3.8.0"
+pandas = "^1.5"
 
 [build-system]
 requires = ["poetry-core"]
