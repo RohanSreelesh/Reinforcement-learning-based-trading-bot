@@ -1,7 +1,7 @@
 # Reinforced Learning Project
 
 [![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
-[![python@3.9](https://img.shields.io/badge/Python-3.9-blue)](https://www.python.org/downloads/release/python-390/)
+[![python@3.11](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/downloads/release/python-390/)
 [![code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Discord](https://img.shields.io/badge/%20discord%20-blue)](https://discord.gg/KY7HGvfw)
 
