@@ -2,6 +2,7 @@ import gymnasium as gym
 from envs import TradingEnv
 from data import COCA_COLA, TD
 from models import ActionType, Action, Account
+import matplotlib.pyplot as plt
 
 
 def demo():
@@ -31,3 +32,4 @@ def demo():
             env.reset()
 
     env.close()
+    env.unwrapped.render_all()
