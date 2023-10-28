@@ -16,7 +16,7 @@ packages = [
 ]
 
 [tool.poetry.scripts]
-trading-demo = "src.demo.trading-demo:demo"
+trading-demo = "src.demo.trading:demo"
 
 [tool.poetry.dependencies]
 python = "^3.11"
