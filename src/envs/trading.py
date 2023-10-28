@@ -77,11 +77,12 @@ class TradingEnv(gym.Env):
         return prices.astype(np.float32), signal_features.astype(np.float32)
 
     def _update_history(self, info: dict[str, float], action: Action):
+        self.history.setdefault("action", [])
+        self.history["action"].append(action.type)
+
         for key, value in info.items():
             self.history.setdefault(key, [])
             self.history[key].append(value)
-        self.history.setdefault('action', [])
-        self.history['action'].append(action.type)
 
     def _fulfill_order(self, action: Action):
         current_price = self.prices[self._current_tick]
@@ -120,11 +121,7 @@ class TradingEnv(gym.Env):
         self._total_reward = 0
         self._total_profit = 0
         self.account.reset()
-        self.history = {
-        'reward': [0.0],
-        'profit': [0.0],
-        'action': [ActionType.Hold] 
-    }
+        self.history = {"reward": [0.0], "profit": [0.0], "action": [ActionType.Hold]}
 
         observation = self._get_observation()
         info = self._get_info()
@@ -154,7 +151,7 @@ class TradingEnv(gym.Env):
 
         observation = self._get_observation()
         info = self._get_info()
-        self._update_history(info,action)
+        self._update_history(info, action)
 
         if self.render_mode == "human":
             self._render_frame()
@@ -188,29 +185,29 @@ class TradingEnv(gym.Env):
             ax.clear()
 
         # Plot prices and actions on the first axis
-        self._axis[0].plot(self.prices[:self._current_tick], label="Price", color='blue')
+        self._axis[0].plot(self.prices[: self._current_tick], label="Price", color="blue")
 
-        for tick in range(self._start_tick, len(self.history['action'])):
-            if self.history['action'][tick] == ActionType.Buy:
-                self._axis[0].plot(tick, self.prices[tick], 'g^')
-            elif self.history['action'][tick] == ActionType.Sell:
-                self._axis[0].plot(tick, self.prices[tick], 'rv') 
-            elif self.history['action'][tick] == ActionType.Hold:
-                self._axis[0].plot(tick, self.prices[tick], 'yo')  
+        for tick in range(self._start_tick, len(self.history["action"])):
+            if self.history["action"][tick] == ActionType.Buy:
+                self._axis[0].plot(tick, self.prices[tick], "g^")
+            elif self.history["action"][tick] == ActionType.Sell:
+                self._axis[0].plot(tick, self.prices[tick], "rv")
+            elif self.history["action"][tick] == ActionType.Hold:
+                self._axis[0].plot(tick, self.prices[tick], "yo")
 
         self._axis[0].set_title("Price and Actions")
         self._axis[0].legend()
 
         # Plot account balance on the second axis
         account_values = []
-        for reward in self.history['reward']:
+        for reward in self.history["reward"]:
             account_value = self.account.deposited_funds + reward
             account_values.append(account_value)
 
-        self._axis[1].plot(account_values, label="Account Value", color='green')
+        self._axis[1].plot(account_values, label="Account Value", color="green")
         self._axis[1].set_title("Account Value Over Time")
         self._axis[1].legend()
- 
+
         plt.draw()
         plt.pause(0.01)
 
@@ -218,28 +215,32 @@ class TradingEnv(gym.Env):
         self.render()
 
     def render_all(self):
-        fig, axis = plt.subplots(2, 1, figsize=(16, 6))
+        _, axis = plt.subplots(2, 1, figsize=(16, 6))
 
         # Plot prices and actions on the first axis
-        axis[0].plot(self.prices[:len(self.history['action'])+self.window_size], label="Price", color='blue')
+        axis[0].plot(
+            self.prices[: len(self.history["action"]) + self.window_size],
+            label="Price",
+            color="blue",
+        )
 
-        for tick in range(len(self.history['action'])):
-            if self.history['action'][tick] == ActionType.Buy:
-                axis[0].plot(tick, self.prices[tick], 'g^')
-            elif self.history['action'][tick] == ActionType.Sell:
-                axis[0].plot(tick, self.prices[tick], 'rv')  
-            elif self.history['action'][tick] == ActionType.Hold:
-                axis[0].plot(tick, self.prices[tick], 'yo') 
+        for tick in range(len(self.history["action"])):
+            if self.history["action"][tick] == ActionType.Buy:
+                axis[0].plot(tick, self.prices[tick], "g^")
+            elif self.history["action"][tick] == ActionType.Sell:
+                axis[0].plot(tick, self.prices[tick], "rv")
+            elif self.history["action"][tick] == ActionType.Hold:
+                axis[0].plot(tick, self.prices[tick], "yo")
 
         axis[0].set_title("Price and Actions")
         axis[0].legend()
 
         # Plot account balance on the second axis
         account_values = []
-        for reward in self.history['reward']:
+        for reward in self.history["reward"]:
             account_value = self.account.deposited_funds + reward
             account_values.append(account_value)
-        axis[1].plot(account_values, label="Account Value", color='green')
+        axis[1].plot(account_values, label="Account Value", color="green")
         axis[1].set_title("Account Value Over Time")
         axis[1].legend()
 
