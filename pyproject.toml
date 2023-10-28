@@ -11,11 +11,12 @@ packages = [
   {include = "data", from = "src"},
   {include = "demo", from = "src"},
   {include = "envs", from = "src"},
+  {include = "enums", from = "src"},
   {include = "models", from = "src"}
 ]
 
 [tool.poetry.scripts]
-trading-demo = "src.demo.trading-demo:demo"
+trading-demo = "src.demo.trading:demo"
 
 [tool.poetry.dependencies]
 python = "^3.11"
