@@ -11,6 +11,7 @@ packages = [
   {include = "data", from = "src"},
   {include = "demo", from = "src"},
   {include = "envs", from = "src"},
+  {include = "enums", from = "src"},
   {include = "models", from = "src"}
 ]
 

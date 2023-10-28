@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import gymnasium as gym
 import pandas as pd
 from typing import List
-from models import Action, Account, ActionType
+from models import Action, Account
+from enums import Reward, Action as ActionType
 
 
 class TradingEnv(gym.Env):
@@ -29,6 +30,8 @@ class TradingEnv(gym.Env):
     _last_trade_tick: int = None
     _total_reward: float
     _total_profit: float
+    _fig: plt.Figure
+    _graphs: List[plt.Axes]
 
     # Constructor
     def __init__(
@@ -94,20 +97,20 @@ class TradingEnv(gym.Env):
         match type:
             case ActionType.Buy:
                 if order_quantity * current_price > available_funds:
-                    return -1
+                    return Reward.INVALID.value
 
                 self._last_trade_tick = self._current_tick
                 return self.account.update_holding(action.quantity, current_price)
 
             case ActionType.Sell:
                 if order_quantity > current_holding:
-                    return -1
+                    return Reward.INVALID.value
 
                 self._last_trade_tick = self._current_tick
                 return self.account.update_holding(-action.quantity, current_price)
 
             case _:
-                return 0
+                return Reward.NO_TRADE.value
 
     # Lifecycle
     def reset(self, seed=None, options=None):
@@ -127,7 +130,7 @@ class TradingEnv(gym.Env):
         info = self._get_info()
 
         if self.render_mode == "human":
-            self._render_frame()
+            self.render()
 
         return observation, info
 
@@ -154,7 +157,7 @@ class TradingEnv(gym.Env):
         self._update_history(info, action)
 
         if self.render_mode == "human":
-            self._render_frame()
+            self.render()
 
         return observation, step_reward, False, self._truncated, info
 
@@ -173,52 +176,43 @@ class TradingEnv(gym.Env):
         )
 
     # Render
-    def render(self, mode="human"):
+    def render(self):
         if self.render_mode != "human":
             return
 
-        if not hasattr(self, "_fig") or not hasattr(self, "_axis"):
-            self._fig, self._axis = plt.subplots(2, 1, figsize=(10, 6))
+        if not hasattr(self, "_fig") or not hasattr(self, "_graphs"):
+            self._fig, self._graphs = plt.subplots(2, 1, figsize=(10, 6))
             plt.ion()
 
-        for ax in self._axis:
-            ax.clear()
+        for graph in self._graphs:
+            graph.clear()
 
-        # Plot prices and actions on the first axis
-        self._axis[0].plot(self.prices[: self._current_tick], label="Price", color="blue")
-
-        for tick in range(self._start_tick, len(self.history["action"])):
-            if self.history["action"][tick] == ActionType.Buy:
-                self._axis[0].plot(tick, self.prices[tick], "g^")
-            elif self.history["action"][tick] == ActionType.Sell:
-                self._axis[0].plot(tick, self.prices[tick], "rv")
-            elif self.history["action"][tick] == ActionType.Hold:
-                self._axis[0].plot(tick, self.prices[tick], "yo")
-
-        self._axis[0].set_title("Price and Actions")
-        self._axis[0].legend()
-
-        # Plot account balance on the second axis
-        account_values = []
-        for reward in self.history["reward"]:
-            account_value = self.account.deposited_funds + reward
-            account_values.append(account_value)
-
-        self._axis[1].plot(account_values, label="Account Value", color="green")
-        self._axis[1].set_title("Account Value Over Time")
-        self._axis[1].legend()
+        self._fig.canvas.manager.set_window_title("Action and Balance History (Live)")
+        self._plot_action_history_live()
+        self._plot_account_history()
 
         plt.draw()
         plt.pause(0.01)
 
-    def _render_frame(self):
-        self.render()
+    def _plot_action_history_live(self):
+        trading_graph = self._graphs[0]
+        trading_graph.plot(self.prices[: self._current_tick], label="Price", color="blue")
 
-    def render_all(self):
-        _, axis = plt.subplots(2, 1, figsize=(16, 6))
+        for tick in range(self._start_tick, len(self.history["action"])):
+            if self.history["action"][tick] == ActionType.Buy:
+                trading_graph.plot(tick, self.prices[tick], "g^")
+            elif self.history["action"][tick] == ActionType.Sell:
+                trading_graph.plot(tick, self.prices[tick], "rv")
+            elif self.history["action"][tick] == ActionType.Hold:
+                trading_graph.plot(tick, self.prices[tick], "yo")
 
+        trading_graph.set_title("Price and Actions")
+        trading_graph.legend()
+
+    def _plot_action_history_final(self):
         # Plot prices and actions on the first axis
-        axis[0].plot(
+        trading_graph = self._graphs[0]
+        trading_graph.plot(
             self.prices[: len(self.history["action"]) + self.window_size],
             label="Price",
             color="blue",
@@ -226,23 +220,33 @@ class TradingEnv(gym.Env):
 
         for tick in range(len(self.history["action"])):
             if self.history["action"][tick] == ActionType.Buy:
-                axis[0].plot(tick, self.prices[tick], "g^")
+                trading_graph.plot(tick, self.prices[tick], "g^")
             elif self.history["action"][tick] == ActionType.Sell:
-                axis[0].plot(tick, self.prices[tick], "rv")
+                trading_graph.plot(tick, self.prices[tick], "rv")
             elif self.history["action"][tick] == ActionType.Hold:
-                axis[0].plot(tick, self.prices[tick], "yo")
+                trading_graph.plot(tick, self.prices[tick], "yo")
 
-        axis[0].set_title("Price and Actions")
-        axis[0].legend()
+        trading_graph.set_title("Price and Actions")
+        trading_graph.legend()
 
+    def _plot_account_history(self):
         # Plot account balance on the second axis
+        account_graph = self._graphs[1]
+
         account_values = []
         for reward in self.history["reward"]:
             account_value = self.account.deposited_funds + reward
             account_values.append(account_value)
-        axis[1].plot(account_values, label="Account Value", color="green")
-        axis[1].set_title("Account Value Over Time")
-        axis[1].legend()
+
+        account_graph.plot(account_values, label="Account Value", color="green")
+        account_graph.set_title("Account Value Over Time")
+        account_graph.legend()
+
+    def render_final_result(self):
+        self._fig, self._graphs = plt.subplots(2, 1, figsize=(16, 6))
+        self._fig.canvas.manager.set_window_title("Action and Balance History")
+        self._plot_action_history_final()
+        self._plot_account_history()
 
         # Turn off interactive mode so that the plot stays up
         plt.ioff()

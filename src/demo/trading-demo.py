@@ -1,14 +1,13 @@
 import gymnasium as gym
 from envs import TradingEnv
-from data import COCA_COLA, TD
-from models import ActionType, Action, Account
-import matplotlib.pyplot as plt
+import data as STOCKS
+from models import ActionType, Action
 
 
 def demo():
-    env: TradingEnv = gym.make(
+    env = gym.make(
         "trading-v1",
-        data_frames=COCA_COLA,
+        data_frames=STOCKS.COCA_COLA,
         window_size=30,
         render_mode="human",
         start=1000,
@@ -16,20 +15,23 @@ def demo():
         stop_loss_limit=50,
     )
 
-    max_episodes = 250
+    trading_env: TradingEnv = env.unwrapped
 
-    env.reset()
+    max_episodes = 1
 
     for _ in range(max_episodes):
-        action_type: ActionType = env.action_space.sample()
+        env.reset()
 
-        # TODO: should this be part of the action space as well or it's part of the learning steps for agent
-        action = Action(action_type, 100)
+        while True:
+            action_type: ActionType = env.action_space.sample()
 
-        observation, reward, terminated, truncated, info = env.step(action)
+            # TODO: should this be part of the action space as well or it's part of the learning steps for agent
+            action = Action(action_type, 100)
 
-        if terminated or truncated:
-            env.reset()
+            observation, reward, terminated, truncated, info = env.step(action)
+
+            if terminated or truncated:
+                break
 
     env.close()
-    env.unwrapped.render_all()
+    trading_env.render_final_result()
