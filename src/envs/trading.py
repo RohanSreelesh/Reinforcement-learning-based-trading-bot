@@ -234,7 +234,7 @@ class TradingEnv(gym.Env):
             total_values.append(total_value)
 
         account_graph.plot(total_values, label="Total value", color="black")
-        account_graph.set_title("Total Calue Over Time")
+        account_graph.set_title("Total Account Value Over Time")
         account_graph.legend()
 
 
