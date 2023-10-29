@@ -82,10 +82,10 @@ class TradingEnv(gym.Env):
     def _update_history(self, info: dict[str, float], action: Action):
         self.history.setdefault("action", [])
         self.history["action"].append(action.type)
-
         for key, value in info.items():
             self.history.setdefault(key, [])
             self.history[key].append(value)
+        self.history["account_total"].append(self.account.get_total_value(self.prices[self._current_tick]))
 
     def _fulfill_order(self, action: Action):
         current_price = self.prices[self._current_tick]
@@ -105,7 +105,6 @@ class TradingEnv(gym.Env):
             case ActionType.Sell:
                 if order_quantity > current_holding:
                     return Reward.INVALID.value
-
                 self._last_trade_tick = self._current_tick
                 return self.account.update_holding(-action.quantity, current_price)
 
@@ -124,7 +123,7 @@ class TradingEnv(gym.Env):
         self._total_reward = 0
         self._total_profit = 0
         self.account.reset()
-        self.history = {"reward": [0.0], "profit": [0.0], "action": [ActionType.Hold]}
+        self.history = {"reward": [0.0], "profit": [0.0], "action": [ActionType.Hold], "account_total": [self.account.get_current_account_value()]}
 
         observation = self._get_observation()
         info = self._get_info()
@@ -138,13 +137,11 @@ class TradingEnv(gym.Env):
         self._truncated = False
         self._current_tick += 1
         step_reward = 0
-
         if self._current_tick == self._end_tick or self.account.should_exit():
             self._truncated = True
 
-        if self.account.should_exit():
+        if self.account.should_exit() or self._current_tick == self._end_tick:
             step_reward = self._fulfill_order(Action(ActionType.Sell, self.account.holdings))
-
         else:
             step_reward = self._fulfill_order(action)
 
@@ -158,7 +155,6 @@ class TradingEnv(gym.Env):
 
         if self.render_mode == "human":
             self.render()
-
         return observation, step_reward, False, self._truncated, info
 
     def close(self):
@@ -189,8 +185,7 @@ class TradingEnv(gym.Env):
 
         self._fig.canvas.manager.set_window_title("Action and Balance History (Live)")
         self._plot_action_history_live()
-        self._plot_account_history()
-
+        self._plot_total_value_history()
         plt.draw()
         plt.pause(0.01)
 
@@ -229,24 +224,25 @@ class TradingEnv(gym.Env):
         trading_graph.set_title("Price and Actions")
         trading_graph.legend()
 
-    def _plot_account_history(self):
+    def _plot_total_value_history(self):
         # Plot account balance on the second axis
         account_graph = self._graphs[1]
 
-        account_values = []
-        for reward in self.history["reward"]:
-            account_value = self.account.deposited_funds + reward
-            account_values.append(account_value)
+        total_values = []
+        for reward in self.history["account_total"]:
+            total_value = reward
+            total_values.append(total_value)
 
-        account_graph.plot(account_values, label="Account Value", color="green")
-        account_graph.set_title("Account Value Over Time")
+        account_graph.plot(total_values, label="Total value", color="black")
+        account_graph.set_title("Total Calue Over Time")
         account_graph.legend()
+
 
     def render_final_result(self):
         self._fig, self._graphs = plt.subplots(2, 1, figsize=(16, 6))
         self._fig.canvas.manager.set_window_title("Action and Balance History")
         self._plot_action_history_final()
-        self._plot_account_history()
+        self._plot_total_value_history()
 
         # Turn off interactive mode so that the plot stays up
         plt.ioff()
