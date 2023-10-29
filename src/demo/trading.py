@@ -11,8 +11,8 @@ def demo():
         window_size=30,
         render_mode="human",
         start=1000,
-        goal=2000,
-        stop_loss_limit=50,
+        goal=1150,
+        stop_loss_limit=900,
     )
 
     trading_env: TradingEnv = env.unwrapped
@@ -26,7 +26,7 @@ def demo():
             action_type: ActionType = env.action_space.sample()
 
             # TODO: should this be part of the action space as well or it's part of the learning steps for agent
-            action = Action(action_type, 100)
+            action = Action(action_type, 10)
 
             observation, reward, terminated, truncated, info = env.step(action)
 

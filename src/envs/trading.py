@@ -85,31 +85,31 @@ class TradingEnv(gym.Env):
         for key, value in info.items():
             self.history.setdefault(key, [])
             self.history[key].append(value)
-        self.history["account_total"].append(self.account.get_total_value(self.prices[self._current_tick]))
+        self.history["account_total"].append(
+            self.account.get_total_value(self.prices[self._current_tick])
+        )
 
     def _fulfill_order(self, action: Action):
+        previous_price = self.prices[self._current_tick - 1]
         current_price = self.prices[self._current_tick]
         type = action.type
         order_quantity = action.quantity
         available_funds = self.account.available_funds
         current_holding = self.account.holdings
 
-        match type:
-            case ActionType.Buy:
-                if order_quantity * current_price > available_funds:
-                    return Reward.INVALID.value
+        if type == ActionType.Buy and order_quantity * current_price <= available_funds:
+            self.account.update_holding(action.quantity, current_price)
+            self._last_trade_tick = self._current_tick
 
-                self._last_trade_tick = self._current_tick
-                return self.account.update_holding(action.quantity, current_price)
+        if type == ActionType.Sell and order_quantity <= current_holding:
+            self.account.update_holding(-action.quantity, current_price)
+            self._last_trade_tick = self._current_tick
 
-            case ActionType.Sell:
-                if order_quantity > current_holding:
-                    return Reward.INVALID.value
-                self._last_trade_tick = self._current_tick
-                return self.account.update_holding(-action.quantity, current_price)
+        delta = self.account.get_total_value(current_price) - self.account.get_total_value(
+            previous_price
+        )
 
-            case _:
-                return Reward.NO_TRADE.value
+        return delta
 
     # Lifecycle
     def reset(self, seed=None, options=None):
@@ -123,7 +123,12 @@ class TradingEnv(gym.Env):
         self._total_reward = 0
         self._total_profit = 0
         self.account.reset()
-        self.history = {"reward": [0.0], "profit": [0.0], "action": [ActionType.Hold], "account_total": [self.account.get_current_account_value()]}
+        self.history = {
+            "reward": [0.0],
+            "profit": [0.0],
+            "action": [ActionType.Hold],
+            "account_total": [self.account.available_funds],
+        }
 
         observation = self._get_observation()
         info = self._get_info()
@@ -137,17 +142,16 @@ class TradingEnv(gym.Env):
         self._truncated = False
         self._current_tick += 1
         step_reward = 0
-        if self._current_tick == self._end_tick or self.account.should_exit():
+        current_stock_price = self.prices[self._current_tick]
+        if self._current_tick == self._end_tick or self.account.should_exit(current_stock_price):
             self._truncated = True
-
-        if self.account.should_exit() or self._current_tick == self._end_tick:
             step_reward = self._fulfill_order(Action(ActionType.Sell, self.account.holdings))
         else:
             step_reward = self._fulfill_order(action)
 
         self._total_reward += step_reward
 
-        self._total_profit = self.account.calculate_profit()
+        self._total_profit = self.account.calculate_profit(current_stock_price)
 
         observation = self._get_observation()
         info = self._get_info()
@@ -229,14 +233,14 @@ class TradingEnv(gym.Env):
         account_graph = self._graphs[1]
 
         total_values = []
-        for reward in self.history["account_total"]:
-            total_value = reward
+        for total_value in self.history["account_total"]:
             total_values.append(total_value)
 
+        account_graph.axhline(y=self.account.goal, label="Goal", color="green")
         account_graph.plot(total_values, label="Total value", color="black")
+        account_graph.axhline(y=self.account.stop_loss_limit, label="Stop Loss", color="orange")
         account_graph.set_title("Total Account Value Over Time")
         account_graph.legend()
-
 
     def render_final_result(self):
         self._fig, self._graphs = plt.subplots(2, 1, figsize=(16, 6))
