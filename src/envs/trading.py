@@ -190,6 +190,7 @@ class TradingEnv(gym.Env):
         self._fig.canvas.manager.set_window_title("Action and Balance History (Live)")
         self._plot_action_history_live()
         self._plot_total_value_history()
+        
         plt.draw()
         plt.pause(0.01)
 
@@ -212,7 +213,7 @@ class TradingEnv(gym.Env):
         # Plot prices and actions on the first axis
         trading_graph = self._graphs[0]
         trading_graph.plot(
-            self.prices[: len(self.history["action"]) + self.window_size],
+            self.prices[: len(self.history["action"])],
             label="Price",
             color="blue",
         )
