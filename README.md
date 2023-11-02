@@ -11,7 +11,7 @@ This project utilizes reinforced learning techniques with the help of Gymnasium,
 
 ### Prerequisites
 
-- Python 3.9
+- Python 3.11
 - Poetry (for dependency management)
 
 ### Installation
@@ -42,17 +42,15 @@ This project utilizes reinforced learning techniques with the help of Gymnasium,
 After installation, you can run the project with:
 
 ```bash
-poetry run python your_main_script.py
+poetry run trading-demo
 ```
-
-Replace `your_main_script.py` with the main entry point of your project.
 
 ## Features
 
 - Reinforced learning techniques.
-- Integration with Gymnasium for environment simulation.
-- Physics modeling with Box2D.
-- Visual representation and interaction using Pygame.
+- Integration with Gymnasium for creating custom trading scenarios.
+- Visualization of trading strategies and account balance using Matplotlib.
+- Ability to simulate and visualize buy, sell, and hold actions over time.
 
 ## Contributing
 
