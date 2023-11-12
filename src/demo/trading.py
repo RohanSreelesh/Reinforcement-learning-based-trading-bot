@@ -2,6 +2,7 @@ import gymnasium as gym
 from envs import TradingEnv
 import data as STOCKS
 from models import ActionType, Action
+import random
 
 
 def demo():
@@ -23,12 +24,10 @@ def demo():
         env.reset()
 
         while True:
-            action_type: ActionType = env.action_space.sample()
+            action = env.action_space.sample()
 
-            # TODO: should this be part of the action space as well or it's part of the learning steps for agent
-            action = Action(action_type, 10)
-
-            observation, reward, terminated, truncated, info = env.step(action)
+            observation, reward, terminated, truncated, info = env.step(
+                action - env.unwrapped.k)
 
             if terminated or truncated:
                 break
