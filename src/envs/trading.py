@@ -14,6 +14,7 @@ class TradingEnv(gym.Env):
     data_frames: pd.DataFrame
     window_size: int
     shape: tuple[int, int]
+    max_shares_per_trade: int
 
     action_space: gym.spaces.Discrete
     observation_space: gym.spaces.Box
@@ -42,6 +43,7 @@ class TradingEnv(gym.Env):
         start: float = 0,
         goal: float = 0,
         stop_loss_limit: float = 0,
+        max_shares_per_trade: int = 10,
     ):
         self.account = Account(start, goal, stop_loss_limit)
 
@@ -51,15 +53,14 @@ class TradingEnv(gym.Env):
         self.window_size = window_size
         self.prices, self.signal_features = self._process_data()
         self.shape = (window_size, self.signal_features.shape[1])
+        self.max_shares_per_trade = max_shares_per_trade
 
         # spaces
         self.observation_space = gym.spaces.Box(
             low=-1e10, high=1e10, shape=self.shape, dtype=np.float32
         )
 
-        self.max_k = 10
-        self.k = self.max_k
-        self.action_space = gym.spaces.Discrete(2 * self.k + 1)
+        self.action_space = gym.spaces.Discrete(2 * self.max_shares_per_trade + 1)
 
         # episode
         self._start_tick = self.window_size
@@ -116,14 +117,6 @@ class TradingEnv(gym.Env):
         )
 
         return delta
-
-    # def _update_k(self):
-    #     current_price = self.prices[self._current_tick]
-    #     new_k_buy = min(int(self.account.available_funds // current_price),
-    #                     self.max_k)
-    #     new_k_sell = min(int(self.account.holdings), self.max_k)
-    #     self.k = int(min(new_k_buy, new_k_sell))
-    #     self.action_space = gym.spaces.Discrete(2 * self.k + 1)
 
     # Lifecycle
     def reset(self, seed=None, options=None):

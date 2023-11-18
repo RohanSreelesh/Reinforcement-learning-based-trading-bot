@@ -2,7 +2,6 @@ import gymnasium as gym
 from envs import TradingEnv
 import data as STOCKS
 from models import ActionType, Action
-import random
 
 
 def demo():
@@ -14,6 +13,7 @@ def demo():
         start=1000,
         goal=1150,
         stop_loss_limit=900,
+        max_shares_per_trade=10
     )
 
     trading_env: TradingEnv = env.unwrapped
@@ -27,7 +27,7 @@ def demo():
             action = env.action_space.sample()
 
             observation, reward, terminated, truncated, info = env.step(
-                action - env.unwrapped.k)
+                action - env.unwrapped.max_shares_per_trade)
 
             if terminated or truncated:
                 break
