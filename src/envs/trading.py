@@ -60,7 +60,7 @@ class TradingEnv(gym.Env):
             low=-1e10, high=1e10, shape=self.shape, dtype=np.float32
         )
 
-        self.action_space = gym.spaces.Discrete(2 * self.max_shares_per_trade + 1)
+        self.action_space = gym.spaces.Discrete(2 * self.max_shares_per_trade + 1, start=-self.max_shares_per_trade)
 
         # episode
         self._start_tick = self.window_size

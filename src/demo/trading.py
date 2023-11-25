@@ -26,8 +26,7 @@ def demo():
         while True:
             action = env.action_space.sample()
 
-            observation, reward, terminated, truncated, info = env.step(
-                action - env.unwrapped.max_shares_per_trade)
+            observation, reward, terminated, truncated, info = env.step(action)
 
             if terminated or truncated:
                 break
