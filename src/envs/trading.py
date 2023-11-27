@@ -14,6 +14,7 @@ class TradingEnv(gym.Env):
     data_frames: pd.DataFrame
     window_size: int
     shape: tuple[int, int]
+    max_shares_per_trade: int
 
     action_space: gym.spaces.Discrete
     observation_space: gym.spaces.Box
@@ -42,6 +43,7 @@ class TradingEnv(gym.Env):
         start: float = 0,
         goal: float = 0,
         stop_loss_limit: float = 0,
+        max_shares_per_trade: int = 10,
     ):
         self.account = Account(start, goal, stop_loss_limit)
 
@@ -51,12 +53,14 @@ class TradingEnv(gym.Env):
         self.window_size = window_size
         self.prices, self.signal_features = self._process_data()
         self.shape = (window_size, self.signal_features.shape[1])
+        self.max_shares_per_trade = max_shares_per_trade
 
         # spaces
-        self.action_space = gym.spaces.Discrete(n=len(ActionType), start=ActionType.Sell.value)
         self.observation_space = gym.spaces.Box(
             low=-1e10, high=1e10, shape=self.shape, dtype=np.float32
         )
+
+        self.action_space = gym.spaces.Discrete(2 * self.max_shares_per_trade + 1, start=-self.max_shares_per_trade)
 
         # episode
         self._start_tick = self.window_size
@@ -79,9 +83,17 @@ class TradingEnv(gym.Env):
 
         return prices.astype(np.float32), signal_features.astype(np.float32)
 
-    def _update_history(self, info: dict[str, float], action: Action):
+    def _update_history(self, info: dict[str, float], action):
+        if action > 0:
+            type = ActionType.Buy
+        elif action < 0:
+            type = ActionType.Sell
+        else:
+            type = ActionType.Hold
+
+
         self.history.setdefault("action", [])
-        self.history["action"].append(action.type)
+        self.history["action"].append(type)
         for key, value in info.items():
             self.history.setdefault(key, [])
             self.history[key].append(value)
@@ -89,20 +101,15 @@ class TradingEnv(gym.Env):
             self.account.get_total_value(self.prices[self._current_tick])
         )
 
-    def _fulfill_order(self, action: Action):
+    def _fulfill_order(self, action):
         previous_price = self.prices[self._current_tick - 1]
         current_price = self.prices[self._current_tick]
-        type = action.type
-        order_quantity = action.quantity
+        order_quantity = action
         available_funds = self.account.available_funds
         current_holding = self.account.holdings
 
-        if type == ActionType.Buy and order_quantity * current_price <= available_funds:
-            self.account.update_holding(action.quantity, current_price)
-            self._last_trade_tick = self._current_tick
-
-        if type == ActionType.Sell and order_quantity <= current_holding:
-            self.account.update_holding(-action.quantity, current_price)
+        if (action > 0 and order_quantity * current_price <= available_funds) or (action < 0 and order_quantity <= current_holding):
+            self.account.update_holding(action, current_price)
             self._last_trade_tick = self._current_tick
 
         delta = self.account.get_total_value(current_price) - self.account.get_total_value(
@@ -138,14 +145,14 @@ class TradingEnv(gym.Env):
 
         return observation, info
 
-    def step(self, action: Action):
+    def step(self, action):
         self._truncated = False
         self._current_tick += 1
         step_reward = 0
         current_stock_price = self.prices[self._current_tick]
         if self._current_tick == self._end_tick or self.account.should_exit(current_stock_price):
             self._truncated = True
-            step_reward = self._fulfill_order(Action(ActionType.Sell, self.account.holdings))
+            step_reward = self._fulfill_order(-self.account.holdings)
         else:
             step_reward = self._fulfill_order(action)
 
@@ -190,7 +197,7 @@ class TradingEnv(gym.Env):
         self._fig.canvas.manager.set_window_title("Action and Balance History (Live)")
         self._plot_action_history_live()
         self._plot_total_value_history()
-        
+
         plt.draw()
         plt.pause(0.01)
 
