@@ -1,7 +1,7 @@
 import gymnasium as gym
 from envs import TradingEnv
 import data as STOCKS
-from models import ActionType, Action
+from .masking import get_valid_action_masking
 
 
 def demo():
@@ -13,7 +13,7 @@ def demo():
         start=1000,
         goal=1150,
         stop_loss_limit=900,
-        max_shares_per_trade=10
+        max_shares_per_trade=1000,
     )
 
     trading_env: TradingEnv = env.unwrapped
@@ -24,7 +24,8 @@ def demo():
         env.reset()
 
         while True:
-            action = env.action_space.sample()
+            action_mask = get_valid_action_masking(env)
+            action = env.action_space.sample(mask=action_mask)
 
             observation, reward, terminated, truncated, info = env.step(action)
 
