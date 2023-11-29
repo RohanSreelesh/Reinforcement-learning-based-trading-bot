@@ -5,6 +5,7 @@ import pandas as pd
 from typing import List
 from models import Account
 from enums import Action as ActionType
+import time
 
 
 class TradingEnv(gym.Env):
@@ -125,7 +126,10 @@ class TradingEnv(gym.Env):
     def reset(self, seed=None, options=None):
         super().reset(seed=seed, options=options)
 
-        self.action_space.seed(int((self.np_random.uniform(0, seed if seed is not None else 1))))
+        if seed is not None:
+            self.action_space.seed(seed)
+        else:
+            self.action_space.seed(int(time.time()))
 
         self._truncated = False
         self._current_tick = self._start_tick
