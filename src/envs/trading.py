@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 import gymnasium as gym
 import pandas as pd
 from typing import List
-from models import Action, Account
-from enums import Reward, Action as ActionType
+from models import Account
+from enums import Action as ActionType
+import time
 
 
 class TradingEnv(gym.Env):
@@ -60,7 +61,9 @@ class TradingEnv(gym.Env):
             low=-1e10, high=1e10, shape=self.shape, dtype=np.float32
         )
 
-        self.action_space = gym.spaces.Discrete(2 * self.max_shares_per_trade + 1, start=-self.max_shares_per_trade)
+        self.action_space = gym.spaces.Discrete(
+            2 * self.max_shares_per_trade + 1, start=-self.max_shares_per_trade
+        )
 
         # episode
         self._start_tick = self.window_size
@@ -91,7 +94,6 @@ class TradingEnv(gym.Env):
         else:
             type = ActionType.Hold
 
-
         self.history.setdefault("action", [])
         self.history["action"].append(type)
         for key, value in info.items():
@@ -108,7 +110,9 @@ class TradingEnv(gym.Env):
         available_funds = self.account.available_funds
         current_holding = self.account.holdings
 
-        if (action > 0 and order_quantity * current_price <= available_funds) or (action < 0 and order_quantity <= current_holding):
+        if (action > 0 and order_quantity * current_price <= available_funds) or (
+            action < 0 and order_quantity <= current_holding
+        ):
             self.account.update_holding(action, current_price)
             self._last_trade_tick = self._current_tick
 
@@ -122,7 +126,10 @@ class TradingEnv(gym.Env):
     def reset(self, seed=None, options=None):
         super().reset(seed=seed, options=options)
 
-        self.action_space.seed(int((self.np_random.uniform(0, seed if seed is not None else 1))))
+        if seed is not None:
+            self.action_space.seed(seed)
+        else:
+            self.action_space.seed(int(time.time()))
 
         self._truncated = False
         self._current_tick = self._start_tick
@@ -220,7 +227,7 @@ class TradingEnv(gym.Env):
         # Plot prices and actions on the first axis
         trading_graph = self._graphs[0]
         trading_graph.plot(
-            self.prices[: len(self.history["action"])],
+            self.prices[len(self.history["action"])],
             label="Price",
             color="blue",
         )
