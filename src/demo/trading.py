@@ -1,7 +1,7 @@
 import gymnasium as gym
 from envs import TradingEnv
 import data as STOCKS
-from .masking import get_valid_action_masking
+from .utils.masking import get_valid_action_masking
 
 
 def demo():
@@ -11,8 +11,8 @@ def demo():
         window_size=30,
         render_mode="human",
         start=1000,
-        goal=1150,
-        stop_loss_limit=900,
+        goal=2000,
+        stop_loss_limit=500,
         max_shares_per_trade=1000,
     )
 
