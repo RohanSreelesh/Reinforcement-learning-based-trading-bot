@@ -9,14 +9,20 @@ license = "MIT"
 readme = "README.md"
 packages = [
   {include = "data", from = "src"},
-  {include = "demo", from = "src"},
+  {include = "algorithms", from = "src"},
   {include = "envs", from = "src"},
   {include = "enums", from = "src"},
   {include = "models", from = "src"}
 ]
 
 [tool.poetry.scripts]
-trading-demo = "src.demo.trading:demo"
+basic = "src.algorithms.basic:demo"
+q = "src.algorithms.q:demo"
+deep_q = "src.algorithms.deep_q:demo"
+function_approximation = "src.algorithms.function_approximation:demo"
+sarsa = "src.algorithms.sarsa:demo"
+td_lambda = "src.algorithms.td_lambda:demo"
+td_zero = "src.algorithms.td_zero:demo"
 
 [tool.poetry.dependencies]
 python = "^3.11"

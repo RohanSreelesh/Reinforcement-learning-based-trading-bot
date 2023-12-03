@@ -5,6 +5,7 @@ import pandas as pd
 from typing import List, Dict
 from models import Account
 from enums import Action as ActionType
+from models import Action
 import time
 
 
@@ -87,12 +88,7 @@ class TradingEnv(gym.Env):
         return prices.astype(np.float32), signal_features.astype(np.float32)
 
     def _update_history(self, info: dict[str, float], action):
-        if action > 0:
-            type = ActionType.Buy
-        elif action < 0:
-            type = ActionType.Sell
-        else:
-            type = ActionType.Hold
+        type = Action.get_action_type(action)
 
         self.history.setdefault("actions", {})
         self.history["actions"].update({self._current_tick: type})
@@ -216,43 +212,19 @@ class TradingEnv(gym.Env):
             graph.clear()
 
         self._fig.canvas.manager.set_window_title("Action and Balance History (Live)")
-        self._plot_action_history_live()
+        self._plot_action_history(self._current_tick)
         self._plot_total_value_history()
 
         plt.draw()
         plt.pause(0.01)
 
-    def _plot_action_history_live(self):
+    def _plot_action_history(self, tick):
         trading_graph = self._graphs[1]
-        trading_graph.plot(self.prices[: self._current_tick], label="Price", color="blue")
+        trading_graph.plot(self.prices[: tick], label="Price", color="blue")
 
         action_history: Dict[int, ActionType] = self.history["actions"]
 
         for tick in range(self._current_tick):
-            action = action_history.get(tick)
-            if action != None:
-                if action == ActionType.Buy:
-                    trading_graph.plot(tick, self.prices[tick], "g^")
-                elif action == ActionType.Sell:
-                    trading_graph.plot(tick, self.prices[tick], "rv")
-                elif action == ActionType.Hold:
-                    trading_graph.plot(tick, self.prices[tick], "yo")
-
-        trading_graph.set_title("Price and Actions")
-        trading_graph.legend()
-
-    def _plot_action_history_final(self):
-        # Plot prices and actions on the first axis
-        trading_graph = self._graphs[1]
-        trading_graph.plot(
-            self.prices[: self._end_tick],
-            label="Price",
-            color="blue",
-        )
-
-        action_history: Dict[int, ActionType] = self.history["actions"]
-
-        for tick in range(self._end_tick):
             action = action_history.get(tick)
             if action != None:
                 if action == ActionType.Buy:
@@ -283,7 +255,7 @@ class TradingEnv(gym.Env):
     def render_final_result(self):
         self._fig, self._graphs = plt.subplots(2, 1, figsize=(16, 6))
         self._fig.canvas.manager.set_window_title("Action and Balance History")
-        self._plot_action_history_final()
+        self._plot_action_history(self._end_tick)
         self._plot_total_value_history()
 
         # Turn off interactive mode so that the plot stays up
