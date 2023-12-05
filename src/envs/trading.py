@@ -2,9 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import gymnasium as gym
 import pandas as pd
-from typing import List
+from typing import List, Dict
 from models import Account
 from enums import Action as ActionType
+from models import Action
 import time
 
 
@@ -21,7 +22,7 @@ class TradingEnv(gym.Env):
     observation_space: gym.spaces.Box
 
     account: Account
-    history: dict[str, List[float]]
+    history: Dict[str, List[float] | Dict]
 
     metadata = {"render_modes": ["human"], "render_fps": 4}
 
@@ -87,18 +88,15 @@ class TradingEnv(gym.Env):
         return prices.astype(np.float32), signal_features.astype(np.float32)
 
     def _update_history(self, info: dict[str, float], action):
-        if action > 0:
-            type = ActionType.Buy
-        elif action < 0:
-            type = ActionType.Sell
-        else:
-            type = ActionType.Hold
+        type = Action.get_action_type(action)
 
-        self.history.setdefault("action", [])
-        self.history["action"].append(type)
+        self.history.setdefault("actions", {})
+        self.history["actions"].update({self._current_tick: type})
+
         for key, value in info.items():
             self.history.setdefault(key, [])
             self.history[key].append(value)
+
         self.history["account_total"].append(
             self.account.get_total_value(self.prices[self._current_tick])
         )
@@ -140,7 +138,7 @@ class TradingEnv(gym.Env):
         self.history = {
             "reward": [0.0],
             "profit": [0.0],
-            "action": [ActionType.Hold],
+            "actions": {},
             "account_total": [self.account.available_funds],
         }
 
@@ -154,12 +152,24 @@ class TradingEnv(gym.Env):
 
     def step(self, action):
         self._truncated = False
-        self._current_tick += 1
+        self._current_tick += self.window_size
+
+        if self._current_tick > self._end_tick:
+            self._current_tick = self._end_tick
+
         step_reward = 0
         current_stock_price = self.prices[self._current_tick]
-        if self._current_tick == self._end_tick or self.account.should_exit(current_stock_price):
+
+        if self._current_tick == self._end_tick:
             self._truncated = True
+            self._current_tick = self._end_tick
             step_reward = self._fulfill_order(-self.account.holdings)
+
+        elif self.account.should_exit(current_stock_price):
+            self._truncated = True
+            self._end_tick = self._current_tick
+            step_reward = self._fulfill_order(-self.account.holdings)
+
         else:
             step_reward = self._fulfill_order(action)
 
@@ -202,55 +212,40 @@ class TradingEnv(gym.Env):
             graph.clear()
 
         self._fig.canvas.manager.set_window_title("Action and Balance History (Live)")
-        self._plot_action_history_live()
+        self._plot_action_history(self._current_tick)
         self._plot_total_value_history()
 
         plt.draw()
         plt.pause(0.01)
 
-    def _plot_action_history_live(self):
-        trading_graph = self._graphs[0]
-        trading_graph.plot(self.prices[: self._current_tick], label="Price", color="blue")
+    def _plot_action_history(self, tick):
+        trading_graph = self._graphs[1]
+        trading_graph.plot(self.prices[: tick], label="Price", color="blue")
 
-        for tick in range(self._start_tick, len(self.history["action"])):
-            if self.history["action"][tick] == ActionType.Buy:
-                trading_graph.plot(tick, self.prices[tick], "g^")
-            elif self.history["action"][tick] == ActionType.Sell:
-                trading_graph.plot(tick, self.prices[tick], "rv")
-            elif self.history["action"][tick] == ActionType.Hold:
-                trading_graph.plot(tick, self.prices[tick], "yo")
+        action_history: Dict[int, ActionType] = self.history["actions"]
 
-        trading_graph.set_title("Price and Actions")
-        trading_graph.legend()
-
-    def _plot_action_history_final(self):
-        # Plot prices and actions on the first axis
-        trading_graph = self._graphs[0]
-        trading_graph.plot(
-            self.prices[len(self.history["action"])],
-            label="Price",
-            color="blue",
-        )
-
-        for tick in range(len(self.history["action"])):
-            if self.history["action"][tick] == ActionType.Buy:
-                trading_graph.plot(tick, self.prices[tick], "g^")
-            elif self.history["action"][tick] == ActionType.Sell:
-                trading_graph.plot(tick, self.prices[tick], "rv")
-            elif self.history["action"][tick] == ActionType.Hold:
-                trading_graph.plot(tick, self.prices[tick], "yo")
+        for tick in range(self._current_tick):
+            action = action_history.get(tick)
+            if action != None:
+                if action == ActionType.Buy:
+                    trading_graph.plot(tick, self.prices[tick], "g^")
+                elif action == ActionType.Sell:
+                    trading_graph.plot(tick, self.prices[tick], "rv")
+                elif action == ActionType.Hold:
+                    trading_graph.plot(tick, self.prices[tick], "yo")
 
         trading_graph.set_title("Price and Actions")
         trading_graph.legend()
 
     def _plot_total_value_history(self):
         # Plot account balance on the second axis
-        account_graph = self._graphs[1]
+        account_graph = self._graphs[0]
 
         total_values = []
         for total_value in self.history["account_total"]:
             total_values.append(total_value)
 
+        account_graph.axes.get_xaxis().set_visible(False)
         account_graph.axhline(y=self.account.goal, label="Goal", color="green")
         account_graph.plot(total_values, label="Total value", color="black")
         account_graph.axhline(y=self.account.stop_loss_limit, label="Stop Loss", color="orange")
@@ -260,7 +255,7 @@ class TradingEnv(gym.Env):
     def render_final_result(self):
         self._fig, self._graphs = plt.subplots(2, 1, figsize=(16, 6))
         self._fig.canvas.manager.set_window_title("Action and Balance History")
-        self._plot_action_history_final()
+        self._plot_action_history(self._end_tick)
         self._plot_total_value_history()
 
         # Turn off interactive mode so that the plot stays up
