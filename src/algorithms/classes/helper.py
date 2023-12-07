@@ -2,7 +2,8 @@ from envs import TradingEnv
 import data as STOCKS
 import gymnasium as gym
 
-def setup_env_for_testing ():
+
+def setup_env_for_testing():
     env = gym.make(
         "trading-v1",
         data_frames=STOCKS.NASDAQ_TEST,
@@ -15,5 +16,5 @@ def setup_env_for_testing ():
     )
 
     trading_env: TradingEnv = env.unwrapped
-    
+
     return trading_env

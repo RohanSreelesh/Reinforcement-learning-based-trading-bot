@@ -1,5 +1,6 @@
 from sklearn.preprocessing import StandardScaler
 
+
 class StateFeaturizer:
     def __init__(self):
         self.scaler = StandardScaler()
