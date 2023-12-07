@@ -231,8 +231,6 @@ class TradingEnv(gym.Env):
                     trading_graph.plot(tick, self.prices[tick], "g^")
                 elif action == ActionType.Sell:
                     trading_graph.plot(tick, self.prices[tick], "rv")
-                elif action == ActionType.Hold:
-                    trading_graph.plot(tick, self.prices[tick], "yo")
 
         trading_graph.set_title("Price and Actions")
         trading_graph.legend()
