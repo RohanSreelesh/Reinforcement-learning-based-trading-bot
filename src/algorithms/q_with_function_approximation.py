@@ -17,7 +17,7 @@ def epsilon_greedy_policy(agent: LinearQLearner, epsilon: float, env: TradingEnv
 
 
 def demo():
-    env = setup_env_for_testing()
+    env, env_test = setup_env_for_testing()
 
     num_features = np.prod(env.observation_space.shape)
     num_actions = env.action_space.n
@@ -48,4 +48,24 @@ def demo():
             state = next_state
 
     env.close()
-    env.render_final_result()
+
+    # Test loop
+    for _ in range(1):
+        state, _ = env_test.reset()
+        state = featurizer.transform(state)
+        done = False
+
+        while not done:
+            action = epsilon_greedy_policy(agent=agent, env=env_test, state=state, epsilon=0.1)
+
+            next_state, reward, terminated, truncated, _ = env_test.step(action)
+            next_state = state = featurizer.transform(next_state)
+
+            done = terminated or truncated
+
+            agent.update(state=state, next_state=next_state, action=action, reward=reward, done=done)
+
+            state = next_state
+
+    env_test.close()
+    env_test.render_final_result()
