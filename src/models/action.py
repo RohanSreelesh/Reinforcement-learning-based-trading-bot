@@ -7,9 +7,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from envs import TradingEnv
 
+
 class Action:
     @staticmethod
-    def get_action_type (action: int) -> ActionType:
+    def get_action_type(action: int) -> ActionType:
         if action > 0:
             return ActionType.Buy
 
@@ -19,8 +20,8 @@ class Action:
         return ActionType.Hold
 
     @staticmethod
-    def get_action_mask (env: 'TradingEnv') -> np.ndarray:
-        trading_env: 'TradingEnv' = env.unwrapped
+    def get_action_mask(env: "TradingEnv") -> np.ndarray:
+        trading_env: "TradingEnv" = env.unwrapped
         account: Account = trading_env.account
         stock_price: float = trading_env.prices[trading_env._current_tick]
 

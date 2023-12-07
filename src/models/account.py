@@ -21,16 +21,12 @@ class Account:
     # Methods
     def calculate_profit(self, current_stock_price: float):
         return round(
-            (self.get_total_value(current_stock_price) - self.deposited_funds)
-            / self.deposited_funds,
+            (self.get_total_value(current_stock_price) - self.deposited_funds) / self.deposited_funds,
             4,
         )
 
     def should_exit(self, current_stock_price: float):
-        return (
-            self.should_trigger_stop_loss(current_stock_price)
-            or self.get_total_value(current_stock_price) >= self.goal
-        )
+        return self.should_trigger_stop_loss(current_stock_price) or self.get_total_value(current_stock_price) >= self.goal
 
     def should_trigger_stop_loss(self, current_stock_price: float):
         return self.get_total_value(current_stock_price) <= self.stop_loss_limit

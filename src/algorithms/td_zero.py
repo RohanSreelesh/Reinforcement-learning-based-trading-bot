@@ -1,2 +1,2 @@
-def demo ():
+def demo():
     raise NotImplementedError

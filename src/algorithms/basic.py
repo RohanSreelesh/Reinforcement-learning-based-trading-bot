@@ -1,22 +1,9 @@
-import gymnasium as gym
-from envs import TradingEnv
-import data as STOCKS
 from models import Action
+from .classes.helper import setup_env_for_testing
 
 
 def demo():
-    env = gym.make(
-        "trading-v1",
-        data_frames=STOCKS.COCA_COLA,
-        window_size=30,
-        render_mode="human",
-        start=1000,
-        goal=2000,
-        stop_loss_limit=500,
-        max_shares_per_trade=1000,
-    )
-
-    trading_env: TradingEnv = env.unwrapped
+    env, _ = setup_env_for_testing()
 
     max_episodes = 1
 
@@ -33,4 +20,4 @@ def demo():
                 break
 
     env.close()
-    trading_env.render_final_result()
+    env.render_final_result()
