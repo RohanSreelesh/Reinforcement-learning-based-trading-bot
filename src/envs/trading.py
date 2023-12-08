@@ -60,7 +60,7 @@ class TradingEnv(gym.Env):
         # spaces
         self.observation_space = gym.spaces.Box(low=-1e10, high=1e10, shape=self.shape, dtype=np.float32)
 
-        self.action_space = gym.spaces.Discrete(2 * self.max_shares_per_trade + 1, start=-self.max_shares_per_trade)
+        self.action_space = gym.spaces.Discrete(2 * self.max_shares_per_trade + 1)
 
         # episode
         self._start_tick = self.window_size
@@ -146,7 +146,8 @@ class TradingEnv(gym.Env):
     def step(self, action):
         self._truncated = False
         self._current_tick += self.window_size
-        trade = action
+        action_modifier = self.max_shares_per_trade
+        trade = action - action_modifier
 
         if self._current_tick > self._end_tick:
             self._current_tick = self._end_tick
