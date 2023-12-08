@@ -6,12 +6,7 @@ from .classes.linear_learner import LinearQLearner
 from .classes.state_featurizer import StateFeaturizer
 
 
-def epsilon_greedy_policy(agent: LinearQLearner, epsilon: float, env: TradingEnv, state: np.ndarray):
-    if np.random.rand() < epsilon:
-        action_mask = Action.get_action_mask(env)
-        # Random action
-        return env.action_space.sample(mask=action_mask)
-
+def greedy_policy(agent: LinearQLearner, env: TradingEnv, state: np.ndarray):
     # Greedy action
     predictions = agent.predict(state)
     action_mask = Action.get_action_mask(env)
@@ -21,6 +16,16 @@ def epsilon_greedy_policy(agent: LinearQLearner, epsilon: float, env: TradingEnv
     )
 
     return np.argmax(predictions_with_valid_action)
+
+
+def epsilon_greedy_policy(agent: LinearQLearner, epsilon: float, env: TradingEnv, state: np.ndarray):
+    if np.random.rand() < epsilon:
+        action_mask = Action.get_action_mask(env)
+        # Random action
+        return env.action_space.sample(mask=action_mask)
+
+    # Greedy action
+    return greedy_policy(agent, env, state)
 
 
 def demo():
@@ -63,14 +68,12 @@ def demo():
         done = False
 
         while not done:
-            action = epsilon_greedy_policy(agent=agent, env=env_test, state=state, epsilon=0.1)
+            action = greedy_policy(agent=agent, env=env_test, state=state)
 
             next_state, reward, terminated, truncated, _ = env_test.step(action)
             next_state = state = featurizer.transform(next_state)
 
             done = terminated or truncated
-
-            agent.update(state=state, next_state=next_state, action=action, reward=reward, done=done)
 
             state = next_state
 
