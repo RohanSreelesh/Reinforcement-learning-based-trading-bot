@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class LinearModel:
     def __init__(self, num_features, num_actions):
         self.state_weights = np.random.randn(num_features, num_features)
@@ -13,10 +14,8 @@ class LinearModel:
         state_error = next_state.flatten() - predicted_next_state
         reward_error = reward - predicted_reward
 
-        self.state_weights += self.learning_rate * np.outer(
-            state.flatten(), state_error)
-        self.reward_weights += self.learning_rate * reward_error * state.flatten(
-        )[:, np.newaxis]
+        self.state_weights += self.learning_rate * np.outer(state.flatten(), state_error)
+        self.reward_weights += self.learning_rate * reward_error * state.flatten()[:, np.newaxis]
 
     def predict(self, state, action):
         simulated_next_state = np.dot(state.flatten(), self.state_weights)

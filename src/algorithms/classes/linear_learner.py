@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class LinearQLearner:
     def __init__(self, num_features, num_actions, learning_rate=0.01, gamma=0.99):
         self.num_actions = num_actions
