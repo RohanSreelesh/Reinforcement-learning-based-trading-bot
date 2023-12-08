@@ -3,7 +3,7 @@ from .classes.helper import setup_env_for_testing
 
 
 def demo():
-    env, _ = setup_env_for_testing()
+    _, env = setup_env_for_testing()
 
     max_episodes = 1
 
