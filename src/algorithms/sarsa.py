@@ -6,12 +6,7 @@ from .classes.sarsa_linear_learner import SarsaLinearLearner
 from .classes.state_featurizer import StateFeaturizer
 
 
-def epsilon_greedy_policy(agent: SarsaLinearLearner, epsilon: float, env: TradingEnv, state: np.ndarray):
-    if np.random.rand() < epsilon:
-        action_mask = Action.get_action_mask(env)
-        # Random action
-        return env.action_space.sample(mask=action_mask)
-
+def greedy_policy(agent: SarsaLinearLearner, env: TradingEnv, state: np.ndarray):
     # Greedy action
     predictions = agent.predict(state)
     action_mask = Action.get_action_mask(env)
@@ -22,6 +17,15 @@ def epsilon_greedy_policy(agent: SarsaLinearLearner, epsilon: float, env: Tradin
 
     return np.argmax(predictions_with_valid_action)
 
+
+def epsilon_greedy_policy(agent: SarsaLinearLearner, epsilon: float, env: TradingEnv, state: np.ndarray):
+    if np.random.rand() < epsilon:
+        action_mask = Action.get_action_mask(env)
+        # Random action
+        return env.action_space.sample(mask=action_mask)
+
+    # Greedy action
+    return greedy_policy(agent, env, state)
 
 
 def demo():
@@ -72,7 +76,7 @@ def demo():
         done = False
 
         # Choose initial action using epsilon-greedy policy
-        action = epsilon_greedy_policy(agent=agent, env=env, state=state, epsilon=0.1)
+        action = greedy_policy(agent=agent, env=env, state=state)
 
         while not done:
             next_state, reward, terminated, truncated, _ = env.step(action)
@@ -80,15 +84,10 @@ def demo():
 
             done = terminated or truncated
 
-            # Choose next action using epsilon-greedy policy
-            next_action = epsilon_greedy_policy(agent=agent, env=env, state=next_state, epsilon=0.1)
-
-            # Update Q-values using SARSA update rule
-            # agent.update(state=state, next_state=next_state, action=action, reward=reward, next_action=next_action, done=done)
+            next_action = greedy_policy(agent=agent, env=env, state=next_state)
 
             state = next_state
-            action = next_action  # Update action to next action
+            action = next_action 
 
-    # Close the testing environment and render the test result
     env.close()
     env.render_final_result()
