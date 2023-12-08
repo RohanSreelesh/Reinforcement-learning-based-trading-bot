@@ -146,6 +146,7 @@ class TradingEnv(gym.Env):
     def step(self, action):
         self._truncated = False
         self._current_tick += self.window_size
+        trade = action
 
         if self._current_tick > self._end_tick:
             self._current_tick = self._end_tick
@@ -156,15 +157,14 @@ class TradingEnv(gym.Env):
         if self._current_tick == self._end_tick:
             self._truncated = True
             self._current_tick = self._end_tick
-            step_reward = self._fulfill_order(-self.account.holdings)
+            trade = -self.account.holdings
 
         elif self.account.should_exit(current_stock_price):
             self._truncated = True
             self._end_tick = self._current_tick
-            step_reward = self._fulfill_order(-self.account.holdings)
+            trade = -self.account.holdings
 
-        else:
-            step_reward = self._fulfill_order(action)
+        step_reward = self._fulfill_order(trade)
 
         self._total_reward += step_reward
 
@@ -172,7 +172,7 @@ class TradingEnv(gym.Env):
 
         observation = self._get_observation()
         info = self._get_info()
-        self._update_history(info, action)
+        self._update_history(info, trade)
 
         if self.render_mode == "human":
             self.render()
@@ -216,15 +216,15 @@ class TradingEnv(gym.Env):
 
         action_history: Dict[int, ActionType] = self.history["actions"]
 
-        for tick in range(self._current_tick):
-            action = action_history.get(tick)
+        for i in range(tick):
+            action = action_history.get(i)
             if action != None:
                 if action == ActionType.Buy:
-                    trading_graph.plot(tick, self.prices[tick], "g^")
+                    trading_graph.plot(i, self.prices[i], "g^")
                 elif action == ActionType.Sell:
-                    trading_graph.plot(tick, self.prices[tick], "rv")
+                    trading_graph.plot(i, self.prices[i], "rv")
                 elif action == ActionType.Hold:
-                    trading_graph.plot(tick, self.prices[tick], "yo")
+                    trading_graph.plot(i, self.prices[i], "yo")
 
         trading_graph.set_title("Price and Actions")
         trading_graph.legend()
@@ -272,7 +272,7 @@ class TradingEnv(gym.Env):
         self._fig.canvas.manager.set_window_title("Trading History")
 
         # Plot the action history
-        self._plot_action_history(self._end_tick)
+        self._plot_action_history(self._end_tick + 1)
 
         # Plot the total value history
         self._plot_total_value_history()
