@@ -17,7 +17,7 @@ def epsilon_greedy_policy(agent: SarsaLinearLearner, epsilon: float, env: Tradin
 
 
 def demo():
-    env, _ = setup_env_for_testing() # choose the training environment
+    env, _ = setup_env_for_testing()  # choose the training environment
 
     num_features = np.prod(env.observation_space.shape)
     num_actions = env.action_space.n
@@ -57,7 +57,7 @@ def demo():
     env.render_final_result()
     print(env.history["account_total"][-1])
 
-    _, env = setup_env_for_testing() # choose the testing environment
+    _, env = setup_env_for_testing()  # choose the testing environment
     # Run a single episode for testing
     max_episodes = 1
     for _ in range(max_episodes):
