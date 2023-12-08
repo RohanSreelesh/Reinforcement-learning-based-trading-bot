@@ -279,6 +279,7 @@ class TradingEnv(gym.Env):
 
         # Plot the shares vs time history
         self._plot_shares_vs_time()  # Include the new plot for shares vs time
+        print(f"Final account balance is: {self.history['account_total'][-1]}")
 
         # Turn off interactive mode so that the plot stays up
         plt.ioff()

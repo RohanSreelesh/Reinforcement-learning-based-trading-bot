@@ -13,7 +13,14 @@ def epsilon_greedy_policy(agent: LinearQLearner, epsilon: float, env: TradingEnv
         return env.action_space.sample(mask=action_mask)
 
     # Greedy action
-    return np.argmax(agent.predict(state))
+    predictions = agent.predict(state)
+    action_mask = Action.get_action_mask(env)
+
+    predictions_with_valid_action = np.array(
+        [predictions[action] if Action.is_action_valid(action_mask, action) else -np.Infinity for action in np.arange(len(predictions))]
+    )
+
+    return np.argmax(predictions_with_valid_action)
 
 
 def demo():

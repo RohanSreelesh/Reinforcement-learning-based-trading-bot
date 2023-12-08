@@ -7,6 +7,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from envs import TradingEnv
 
+VALID = 1
+INVALID = 0
+
 
 class Action:
     @staticmethod
@@ -29,6 +32,10 @@ class Action:
         low = -account.holdings
         high = math.floor(account.available_funds / stock_price)
 
-        mask = [1 if (value >= low and value <= high) else 0 for value in range(-limit, limit + 1)]
+        mask = [VALID if (value >= low and value <= high) else INVALID for value in range(-limit, limit + 1)]
 
         return np.array(mask, dtype=np.int8)
+
+    @staticmethod
+    def is_action_valid(mask: np.ndarray, action: int):
+        return mask[action] == VALID

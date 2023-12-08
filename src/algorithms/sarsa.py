@@ -13,7 +13,15 @@ def epsilon_greedy_policy(agent: SarsaLinearLearner, epsilon: float, env: Tradin
         return env.action_space.sample(mask=action_mask)
 
     # Greedy action
-    return np.argmax(agent.predict(state))
+    predictions = agent.predict(state)
+    action_mask = Action.get_action_mask(env)
+
+    predictions_with_valid_action = np.array(
+        [predictions[action] if Action.is_action_valid(action_mask, action) else -np.Infinity for action in np.arange(len(predictions))]
+    )
+
+    return np.argmax(predictions_with_valid_action)
+
 
 
 def demo():
@@ -54,8 +62,6 @@ def demo():
             action = next_action  # Update action to next action
 
     env.close()
-    env.render_final_result()
-    print(env.history["account_total"][-1])
 
     _, env = setup_env_for_testing()  # choose the testing environment
     # Run a single episode for testing
@@ -86,4 +92,3 @@ def demo():
     # Close the testing environment and render the test result
     env.close()
     env.render_final_result()
-    print(env.history["account_total"][-1])
