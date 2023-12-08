@@ -28,11 +28,11 @@ class Action:
         account: Account = trading_env.account
         stock_price: float = trading_env.prices[trading_env._current_tick]
 
-        limit = trading_env.max_shares_per_trade
-        low = -account.holdings
-        high = math.floor(account.available_funds / stock_price)
+        modifier = trading_env.max_shares_per_trade
+        low = modifier - account.holdings
+        high = modifier + math.floor(account.available_funds / stock_price)
 
-        mask = [VALID if (value >= low and value <= high) else INVALID for value in range(-limit, limit + 1)]
+        mask = [VALID if (value >= low and value <= high) else INVALID for value in range(env.action_space.n)]
 
         return np.array(mask, dtype=np.int8)
 
