@@ -17,7 +17,7 @@ packages = [
 
 [tool.poetry.scripts]
 basic = "src.algorithms.basic:demo"
-q = "src.algorithms.q:demo"
+dyna_q = "src.algorithms.dyna_q:demo"
 deep_q = "src.algorithms.deep_q:demo"
 q_with_function_approximation = "src.algorithms.q_with_function_approximation:demo"
 sarsa = "src.algorithms.sarsa:demo"
