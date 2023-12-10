@@ -25,9 +25,9 @@ def create_trading_env(STOCK):
         data_frames=STOCK,
         window_size=30,
         render_mode="human",
-        start=40000,  # Starting value, you should define it
-        goal=200000,  # Goal value, you should define it
-        stop_loss_limit=0,  # Stop loss limit, define as needed
+        start=100000,
+        goal=200000,
+        stop_loss_limit=50000,
         max_shares_per_trade=1000  # Maximum shares per trade, define as needed
     )
 def train_for_one_episode(env, model):
@@ -53,34 +53,37 @@ def demo():
     # # Train the model
     # policy_kwargs = dict(ent_coef=0.01)  # Adjust this value as needed
 
-    print("learning")
-    model = MaskablePPO(MaskableActorCriticPolicy, env, learning_rate=0.1, gamma=0.99, verbose=1, ent_coef=0.1, n_steps=5000)
-    model.learn(total_timesteps=5000, use_masking=True, log_interval=1, progress_bar=True)
-    model.save("ppo_trading_model")
-
+    # print("learning")
+    # model = MaskablePPO(MaskableActorCriticPolicy, env, learning_rate=0.1, gamma=0.99, verbose=1, ent_coef=0.1, n_steps=2048)
+    # model.learn(total_timesteps=2048, use_masking=True, log_interval=1, progress_bar=True)
+    # model.save("ppo_trading_model")
+    # print("loading the model")
     # Load the model
     model = MaskablePPO.load("ppo_trading_model")
 
     # Evaluate the trained model
     env = create_trading_env(STOCKS.NASDAQ_TEST)
     env = ActionMasker(env, action_mask_fn)
-    obs = env.reset()
-    obs = obs[0]
+    obs = env.reset()[0]
     avilable_funds_ending = []
-    for _ in tqdm(range(2000), desc="Evaluating Model"):
-        action_masks = Action.get_action_mask(env)
-        obs = np.array(obs).reshape(env.observation_space.shape)
-        action, _states = model.predict(obs, action_masks=action_masks)
-        obs, rewards, dones, truncated, infos = env.step(action)
-        if dones:
-            break
+    for i in tqdm(range(1), desc="Evaluating Model"):
+        obs = env.reset()[0]
+        for _ in range(2000):
+            action_masks = Action.get_action_mask(env)
+            obs = np.array(obs).reshape(env.observation_space.shape)
+            action, _states = model.predict(obs, action_masks=action_masks, deterministic=True)
+            obs, rewards, dones, truncated, infos = env.step(action)
+            if dones:
+                break
+        avilable_funds_ending.append(env.history["account_total"][-1])
+        print(env.history["account_total"][-1])
     #env.render()
-    print(env.history["account_total"])
-    print(env.history["account_total"][-1])
-    avilable_funds_ending.append(env.history["account_total"][-1])
+    # print(env.history["account_total"])
+    # avilable_funds_ending.append(env.history["account_total"][-1])
     #env.close()
-    #env.render_final_result()
+    env.render_final_result()
     # Push it to a text file
     with open("ppo_trading_model.txt", "w") as f:
         for item in avilable_funds_ending:
             f.write("%s\n" % item)
+        f.write("Average:\n%s\n" % (sum(avilable_funds_ending) / len(avilable_funds_ending)))
