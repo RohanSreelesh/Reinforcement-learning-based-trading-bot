@@ -56,13 +56,10 @@ class TradingEnv(gym.Env):
         self.prices, self.signal_features = self._process_data()
         self.shape = (window_size, self.signal_features.shape[1])
         self.max_shares_per_trade = max_shares_per_trade
-
-        # spaces
         self.observation_space = gym.spaces.Box(low=-1e10, high=1e10, shape=self.shape, dtype=np.float32)
 
         self.action_space = gym.spaces.Discrete(2 * self.max_shares_per_trade + 1)
 
-        # episode
         self._start_tick = self.window_size
         self._end_tick = len(self.prices) - 1
         self._truncated = None
@@ -71,7 +68,6 @@ class TradingEnv(gym.Env):
         self._total_reward = None
         self._total_profit = None
 
-        # tracking
         self.history = {}
 
     # Business logics
