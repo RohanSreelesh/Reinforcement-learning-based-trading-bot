@@ -143,12 +143,12 @@ class TradingEnv(gym.Env):
             self.render()
         return observation, info
 
-    def step(self, action):
+    def step(self, action, ppo=False):
         self._truncated = False
         self._current_tick += self.window_size
         action_modifier = self.max_shares_per_trade
         trade = action - action_modifier
-
+        done = False
         if self._current_tick > self._end_tick:
             self._current_tick = self._end_tick
 
@@ -157,10 +157,12 @@ class TradingEnv(gym.Env):
 
         if self._current_tick == self._end_tick:
             self._truncated = True
+            done = True
             self._current_tick = self._end_tick
             trade = -self.account.holdings
 
         elif self.account.should_exit(current_stock_price):
+            done = True
             self._truncated = True
             self._end_tick = self._current_tick
             trade = -self.account.holdings
@@ -177,7 +179,7 @@ class TradingEnv(gym.Env):
 
         if self.render_mode == "human":
             self.render()
-        return observation, step_reward, False, self._truncated, info
+        return observation, step_reward, done, self._truncated, info
 
     def close(self):
         plt.close()
@@ -210,6 +212,7 @@ class TradingEnv(gym.Env):
 
         plt.draw()
         plt.pause(0.01)
+
 
     def _plot_action_history(self, tick):
         trading_graph = self._graphs[1]

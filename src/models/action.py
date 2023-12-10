@@ -26,6 +26,8 @@ class Action:
     def get_action_mask(env: "TradingEnv") -> np.ndarray:
         trading_env: "TradingEnv" = env.unwrapped
         account: Account = trading_env.account
+        if not trading_env._current_tick:
+            trading_env._current_tick = 0
         stock_price: float = trading_env.prices[trading_env._current_tick]
 
         modifier = trading_env.max_shares_per_trade
