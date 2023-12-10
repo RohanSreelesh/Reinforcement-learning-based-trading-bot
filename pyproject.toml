@@ -20,8 +20,6 @@ basic = "src.algorithms.basic:demo"
 dyna_q = "src.algorithms.dyna_q:demo"
 q_with_function_approximation = "src.algorithms.q_with_function_approximation:demo"
 sarsa = "src.algorithms.sarsa:demo"
-td_lambda = "src.algorithms.td_lambda:demo"
-td_zero = "src.algorithms.td_zero:demo"
 ppo = "src.algorithms.ppo:demo"
 
 [tool.poetry.dependencies]
