@@ -65,6 +65,12 @@ poetry run sarsa
 poetry run ppo
 ```
 
+#### Deep Q Networks
+Due to configuration issues and RAM + GPU needed to train neural networks, this algorithm only runs on Google Collab
+ Import the deep_q.ipynb into collab and run each code block.
+ The Training() Function generates a model which can then be imported or stored for future use.
+ The demo() function imports the model and runs a single episode on the NASDAQ_TEST dataset to verify performance
+
 ## Features
 
 - Reinforced learning techniques.
