@@ -33,12 +33,12 @@ def demo():
 
     model = MaskablePPO(MaskableActorCriticPolicy, env, learning_rate=0.1, gamma=0.99, verbose=1, ent_coef=0.1, n_steps=2048)
     model.learn(total_timesteps=2048, use_masking=True, log_interval=1, progress_bar=True)
-    model.save("ppo_trading_model")
+    model.save("src/algorithms/assets/ppo_trading_model")
     # Load the model
-    model = MaskablePPO.load("ppo_trading_model")
+    model = MaskablePPO.load("src/algorithms/assets/ppo_trading_model")
 
     # Evaluate the trained model
-    env = create_trading_env(STOCKS.NASDAQ_NEW)
+    env = create_trading_env(STOCKS.NASDAQ_TEST)
     env = ActionMasker(env, action_mask_fn)
     obs = env.reset()[0]
     avilable_funds_ending = []
