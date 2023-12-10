@@ -1,5 +1,5 @@
 from models import Action
-from .classes.helper import setup_env_for_testing
+from algorithms.classes.helper import setup_env_for_testing
 
 
 def demo():

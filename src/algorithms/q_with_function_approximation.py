@@ -1,9 +1,9 @@
 import numpy as np
 from models import Action
 from envs import TradingEnv
-from .classes.helper import setup_env_for_testing
-from .classes.linear_learner import LinearQLearner
-from .classes.state_featurizer import StateFeaturizer
+from algorithms.classes.helper import setup_env_for_testing
+from algorithms.classes.linear_learner import LinearQLearner
+from algorithms.classes.state_featurizer import StateFeaturizer
 
 
 def greedy_policy(agent: LinearQLearner, env: TradingEnv, state: np.ndarray):
