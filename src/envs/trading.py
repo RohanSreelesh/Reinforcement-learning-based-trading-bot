@@ -56,13 +56,10 @@ class TradingEnv(gym.Env):
         self.prices, self.signal_features = self._process_data()
         self.shape = (window_size, self.signal_features.shape[1])
         self.max_shares_per_trade = max_shares_per_trade
-
-        # spaces
         self.observation_space = gym.spaces.Box(low=-1e10, high=1e10, shape=self.shape, dtype=np.float32)
 
         self.action_space = gym.spaces.Discrete(2 * self.max_shares_per_trade + 1)
 
-        # episode
         self._start_tick = self.window_size
         self._end_tick = len(self.prices) - 1
         self._truncated = None
@@ -71,7 +68,6 @@ class TradingEnv(gym.Env):
         self._total_reward = None
         self._total_profit = None
 
-        # tracking
         self.history = {}
 
     # Business logics
@@ -94,9 +90,8 @@ class TradingEnv(gym.Env):
             self.history[key].append(value)
 
         self.history["account_total"].append(self.account.get_total_value(self.prices[self._current_tick]))
-        # Track shares and account balance
         self.history.setdefault("shares", [])
-        self.history["shares"].append(self.account.holdings)  # Assuming `holdings` represents the number of shares
+        self.history["shares"].append(self.account.holdings)
 
     def _fulfill_order(self, action):
         previous_price = self.prices[self._current_tick - 1]
@@ -144,6 +139,7 @@ class TradingEnv(gym.Env):
         return observation, info
 
     def step(self, action):
+        terminated = False
         self._truncated = False
         self._current_tick += self.window_size
         action_modifier = self.max_shares_per_trade
@@ -157,11 +153,13 @@ class TradingEnv(gym.Env):
 
         if self._current_tick == self._end_tick:
             self._truncated = True
+            terminated = True
             self._current_tick = self._end_tick
             trade = -self.account.holdings
 
         elif self.account.should_exit(current_stock_price):
             self._truncated = True
+            terminated = True
             self._end_tick = self._current_tick
             trade = -self.account.holdings
 
@@ -177,7 +175,8 @@ class TradingEnv(gym.Env):
 
         if self.render_mode == "human":
             self.render()
-        return observation, step_reward, False, self._truncated, info
+
+        return observation, step_reward, terminated, self._truncated, info
 
     def close(self):
         plt.close()
@@ -197,7 +196,7 @@ class TradingEnv(gym.Env):
             return
 
         if not hasattr(self, "_fig") or not hasattr(self, "_graphs"):
-            self._fig, self._graphs = plt.subplots(3, 1, figsize=(10, 9))  # Adjusted for 3 subplots
+            self._fig, self._graphs = plt.subplots(3, 1, figsize=(10, 9))
             plt.ion()
 
         for graph in self._graphs:
@@ -206,7 +205,7 @@ class TradingEnv(gym.Env):
         self._fig.canvas.manager.set_window_title("Trading History (Live)")
         self._plot_action_history(self._current_tick)
         self._plot_total_value_history()
-        self._plot_shares_vs_time()  # New plot
+        self._plot_shares_vs_time()
 
         plt.draw()
         plt.pause(0.01)
@@ -246,17 +245,12 @@ class TradingEnv(gym.Env):
         account_graph.legend()
 
     def _plot_shares_vs_time(self):
-        shares_graph = self._graphs[2]  # Assuming you have 3 subplots
+        shares_graph = self._graphs[2]
 
-        # Create a list of ticks based on the window size
         ticks = list(range(self._start_tick, self._current_tick + 1, self.window_size))
 
-        # Get the shares history for each of these ticks
-        # Assuming that shares are recorded at each window tick
         shares_history = self.history["shares"]
 
-        # Ensure the length of the ticks and shares_history is the same
-        # This is important if the history has more data than the current episode
         ticks = ticks[: len(shares_history)]
         shares_history = shares_history[: len(ticks)]
 
@@ -268,8 +262,7 @@ class TradingEnv(gym.Env):
         shares_graph.legend()
 
     def render_final_result(self):
-        # Adjust for 3 subplots
-        self._fig, self._graphs = plt.subplots(3, 1, figsize=(16, 9))  # Adjusted figsize for better layout
+        self._fig, self._graphs = plt.subplots(3, 1, figsize=(16, 9))
         self._fig.canvas.manager.set_window_title("Trading History")
 
         # Plot the action history
@@ -279,10 +272,9 @@ class TradingEnv(gym.Env):
         self._plot_total_value_history()
 
         # Plot the shares vs time history
-        self._plot_shares_vs_time()  # Include the new plot for shares vs time
+        self._plot_shares_vs_time()
         print(f"Final account balance is: {self.history['account_total'][-1]}")
 
         # Turn off interactive mode so that the plot stays up
         plt.ioff()
-        # plt.savefig("trading_history.png")
         plt.show()

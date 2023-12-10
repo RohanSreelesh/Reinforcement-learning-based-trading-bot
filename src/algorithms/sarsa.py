@@ -87,7 +87,7 @@ def demo():
             next_action = greedy_policy(agent=agent, env=env, state=next_state)
 
             state = next_state
-            action = next_action 
+            action = next_action
 
     env.close()
     env.render_final_result()

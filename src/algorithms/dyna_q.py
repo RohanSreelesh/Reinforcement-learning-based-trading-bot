@@ -1,10 +1,10 @@
 import numpy as np
 import random
-from algorithms.classes.helper import setup_env_for_testing
 from envs import TradingEnv
 from models import Action
-from .classes.state_featurizer import StateFeaturizer
-from .classes.linear_dyna_q_learner import LinearDynaQLearner
+from algorithms.classes.helper import setup_env_for_testing
+from algorithms.classes.state_featurizer import StateFeaturizer
+from algorithms.classes.linear_dyna_q_learner import LinearDynaQLearner
 
 
 class AgentActionHistory:
