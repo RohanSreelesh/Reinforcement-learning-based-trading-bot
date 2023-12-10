@@ -94,9 +94,8 @@ class TradingEnv(gym.Env):
             self.history[key].append(value)
 
         self.history["account_total"].append(self.account.get_total_value(self.prices[self._current_tick]))
-        # Track shares and account balance
         self.history.setdefault("shares", [])
-        self.history["shares"].append(self.account.holdings)  # Assuming `holdings` represents the number of shares
+        self.history["shares"].append(self.account.holdings)
 
     def _fulfill_order(self, action):
         previous_price = self.prices[self._current_tick - 1]
