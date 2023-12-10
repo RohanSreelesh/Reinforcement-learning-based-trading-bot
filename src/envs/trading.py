@@ -199,7 +199,7 @@ class TradingEnv(gym.Env):
             return
 
         if not hasattr(self, "_fig") or not hasattr(self, "_graphs"):
-            self._fig, self._graphs = plt.subplots(3, 1, figsize=(10, 9))  # Adjusted for 3 subplots
+            self._fig, self._graphs = plt.subplots(3, 1, figsize=(10, 9))
             plt.ion()
 
         for graph in self._graphs:
@@ -208,7 +208,7 @@ class TradingEnv(gym.Env):
         self._fig.canvas.manager.set_window_title("Trading History (Live)")
         self._plot_action_history(self._current_tick)
         self._plot_total_value_history()
-        self._plot_shares_vs_time()  # New plot
+        self._plot_shares_vs_time()
 
         plt.draw()
         plt.pause(0.01)
@@ -249,17 +249,12 @@ class TradingEnv(gym.Env):
         account_graph.legend()
 
     def _plot_shares_vs_time(self):
-        shares_graph = self._graphs[2]  # Assuming you have 3 subplots
+        shares_graph = self._graphs[2]
 
-        # Create a list of ticks based on the window size
         ticks = list(range(self._start_tick, self._current_tick + 1, self.window_size))
 
-        # Get the shares history for each of these ticks
-        # Assuming that shares are recorded at each window tick
         shares_history = self.history["shares"]
 
-        # Ensure the length of the ticks and shares_history is the same
-        # This is important if the history has more data than the current episode
         ticks = ticks[: len(shares_history)]
         shares_history = shares_history[: len(ticks)]
 
@@ -271,8 +266,7 @@ class TradingEnv(gym.Env):
         shares_graph.legend()
 
     def render_final_result(self):
-        # Adjust for 3 subplots
-        self._fig, self._graphs = plt.subplots(3, 1, figsize=(16, 9))  # Adjusted figsize for better layout
+        self._fig, self._graphs = plt.subplots(3, 1, figsize=(16, 9))
         self._fig.canvas.manager.set_window_title("Trading History")
 
         # Plot the action history
@@ -282,10 +276,9 @@ class TradingEnv(gym.Env):
         self._plot_total_value_history()
 
         # Plot the shares vs time history
-        self._plot_shares_vs_time()  # Include the new plot for shares vs time
+        self._plot_shares_vs_time()
         print(f"Final account balance is: {self.history['account_total'][-1]}")
 
         # Turn off interactive mode so that the plot stays up
         plt.ioff()
-        # plt.savefig("trading_history.png")
         plt.show()
