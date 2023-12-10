@@ -1,11 +1,11 @@
 # Reinforced Learning Project
 
 [![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
-[![python@3.11](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/downloads/release/python-390/)
+[![python](https://img.shields.io/badge/python-3.11-3776AB?logo=python)](https://www.python.org/downloads/release/python-3110/)
 [![code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Discord](https://img.shields.io/badge/%20discord%20-blue)](https://discord.gg/KY7HGvfw)
+[![Discord](https://img.shields.io/badge/discord-5865F2?logo=discord&logoColor=white)](https://discord.gg/KY7HGvfw)
 
-This project utilizes reinforced learning techniques with the help of Gymnasium, Box2D, and Pygame.
+This project explores various reinforced learning techniques on stock trading with the help of Gymnasium framework.
 
 ## Getting Started
 
@@ -33,34 +33,44 @@ This project utilizes reinforced learning techniques with the help of Gymnasium,
    poetry install
    ```
 
-4. **Additional Dependencies**
+### Algorithms
 
-   Some of the libraries, like box2d and pygame, might have additional dependencies or system requirements. Ensure you have them installed.
-
-### Usage
-
-After installation, you can run the project with:
+#### Random Action
 
 ```bash
-poetry run trading-demo
+poetry run basic
+```
+
+#### Q-Learning with Linear Function Approximation
+
+```bash
+poetry run q_with_function_approximation
+```
+
+#### Dynamic Q-Learning with Linear Function Approximation
+
+```bash
+poetry run dyna_q
+```
+
+#### SARSA
+
+```bash
+poetry run sarsa
+```
+
+#### Proximal Policy Optimization
+
+```bash
+poetry run ppo
 ```
 
 ## Features
 
 - Reinforced learning techniques.
 - Integration with Gymnasium for creating custom trading scenarios.
-- Visualization of trading strategies and account balance using Matplotlib.
+- Visualization of trading strategies and account balance using matplotlib.
 - Ability to simulate and visualize buy, sell, and hold actions over time.
-
-## Contributing
-
-Instructions for developers interested in contributing to the project:
-
-1. Fork the repository.
-2. Create your feature branch (`git checkout -b feature/YourFeatureName`).
-3. Commit your changes (`git commit -m 'Add some feature'`).
-4. Push to the branch (`git push origin feature/YourFeatureName`).
-5. Open a pull request.
 
 ## License
 
