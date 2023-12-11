@@ -6,11 +6,29 @@ from sb3_contrib.common.maskable.policies import MaskableActorCriticPolicy
 from sb3_contrib.common.wrappers import ActionMasker
 from sb3_contrib.ppo_mask import MaskablePPO
 from algorithms.classes.helper import setup_env_for_testing
-
+import data as STOCKS
 
 def action_mask_fn(env: TradingEnv):
     return Action.get_action_mask(env)  # Returns mask 0 - 2001
 
+def setup_env_for_ppo_testing():
+    return TradingEnv(
+        data_frames=STOCKS.NASDAQ_TRAIN,
+        window_size=5,
+        render_mode="human",
+        start=100000,
+        goal=200000,
+        stop_loss_limit=50000,
+        max_shares_per_trade=1000
+    ), TradingEnv(
+        data_frames=STOCKS.NASDAQ_TEST,
+        window_size=5,
+        render_mode="human",
+        start=100000,
+        goal=200000,
+        stop_loss_limit=50000,
+        max_shares_per_trade=1000
+    )
 
 def demo():
     env, env_test = setup_env_for_testing()
