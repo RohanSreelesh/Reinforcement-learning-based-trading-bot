@@ -1,11 +1,11 @@
-# Reinforced Learning Project
+# Reinforcement Learning Based Trading Bot
 
 [![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
 [![python](https://img.shields.io/badge/python-3.11-3776AB?logo=python)](https://www.python.org/downloads/release/python-3110/)
 [![code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Discord](https://img.shields.io/badge/discord-5865F2?logo=discord&logoColor=white)](https://discord.gg/KY7HGvfw)
 
-This project explores various reinforced learning techniques on stock trading with the help of Gymnasium framework.
+This project explores various Reinforcement Learning techniques on stock trading with the help of Gymnasium framework.
 
 ## Getting Started
 
@@ -73,7 +73,7 @@ Due to configuration issues and RAM + GPU needed to train neural networks, this 
 
 ## Features
 
-- Reinforced learning techniques.
+- Reinforcement learning techniques.
 - Integration with Gymnasium for creating custom trading scenarios.
 - Visualization of trading strategies and account balance using matplotlib.
 - Ability to simulate and visualize buy, sell, and hold actions over time.
